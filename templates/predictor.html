@@ -213,87 +213,118 @@
             return alert("No prediction results available to generate a report.");
         }
 
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
         const percentile = document.getElementById('percentile').value;
         const course = document.getElementById('course').value;
         const category = document.getElementById('category').value;
         const region = document.getElementById('region').value;
 
-        // Create a temporary div for the PDF content
-        const element = document.createElement('div');
-        element.style.position = 'absolute';
-        element.style.left = '-9999px';
-        element.style.top = '0';
-        element.style.width = '800px';
-        element.style.padding = '40px';
-        element.style.color = '#000';
-        element.style.background = '#fff';
-        element.style.fontFamily = 'Arial, sans-serif';
+        const pageWidth = doc.internal.pageSize.width;
+        const pageHeight = doc.internal.pageSize.height;
 
-        element.innerHTML = `
-            <div style="border-bottom: 3px solid #6366F1; padding-bottom: 20px; margin-bottom: 30px;">
-                <h1 style="color: #6366F1; margin: 0; font-size: 28px;">COLLEGE PREDICT AI</h1>
-                <p style="color: #666; margin: 5px 0 0;">Official Admission Probability Allotment Report</p>
-            </div>
+        // 1. Header Design
+        doc.setFillColor(99, 102, 241); // Primary Indigo
+        doc.rect(0, 0, pageWidth, 45, 'F');
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(28);
+        doc.setFont('helvetica', 'bold');
+        doc.text('EduPredict AI', 20, 22);
+
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'normal');
+        doc.text('OFFICIAL ADMISSION PROBABILITY REPORT', 20, 32);
+
+        // 2. Student & Metadata Section
+        doc.setFillColor(248, 250, 252);
+        doc.rect(15, 50, pageWidth - 30, 35, 'F');
+        doc.setDrawColor(226, 232, 240);
+        doc.rect(15, 50, pageWidth - 30, 35, 'D');
+
+        doc.setTextColor(71, 85, 105);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.text('STUDENT PARAMETERS', 22, 58);
+        doc.text('ANALYSIS METADATA', pageWidth / 2 + 10, 58);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(30, 41, 59);
+        doc.text(`Percentile: ${percentile}%`, 22, 66);
+        doc.text(`Category: ${category}`, 22, 73);
+        doc.text(`Region: ${region}`, 22, 80);
+
+        doc.text(`Date: ${new Date().toLocaleDateString()}`, pageWidth / 2 + 10, 66);
+        doc.text(`Discipline: ${course}`, pageWidth / 2 + 10, 73);
+        doc.text(`Total Colleges: ${globalResultsData.length}`, pageWidth / 2 + 10, 80);
+
+        // 3. Table Header
+        let y = 100;
+        doc.setFillColor(99, 102, 241);
+        doc.rect(15, y - 6, pageWidth - 30, 10, 'F');
+        
+        doc.setTextColor(255, 255, 255);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.text('COLLEGE DESIGNATION', 20, y);
+        doc.text('REGION', 110, y);
+        doc.text('CUTOFF %', 145, y);
+        doc.text('PROBABILITY', 172, y);
+
+        // 4. Table Content
+        doc.setFont('helvetica', 'normal');
+        y += 12;
+
+        globalResultsData.slice(0, 25).forEach((item, index) => {
+            if (y > pageHeight - 30) {
+                doc.addPage();
+                y = 25;
+                // Redraw table header on new page
+                doc.setFillColor(99, 102, 241);
+                doc.rect(15, y - 6, pageWidth - 30, 10, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.text('COLLEGE DESIGNATION', 20, y);
+                doc.text('REGION', 110, y);
+                doc.text('CUTOFF %', 145, y);
+                doc.text('PROBABILITY', 172, y);
+                y += 12;
+                doc.setTextColor(30, 41, 59);
+            }
+
+            // Zebra Striping
+            if (index % 2 === 0) {
+                doc.setFillColor(248, 250, 252);
+                doc.rect(15, y - 7, pageWidth - 30, 12, 'F');
+            }
+
+            doc.setTextColor(30, 41, 59);
+            const collegeName = item.college.length > 50 ? item.college.substring(0, 47) + '...' : item.college;
+            doc.text(collegeName, 20, y);
+            doc.text(item.region, 110, y);
+            doc.text(`${item.cutoff_percentile}%`, 145, y);
             
-            <div style="margin-bottom: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                <div>
-                    <h4 style="margin: 0 0 5px; color: #333;">STUDENT DETAILS</h4>
-                    <p style="margin: 2px 0;"><strong>Percentile:</strong> ${percentile}</p>
-                    <p style="margin: 2px 0;"><strong>Category:</strong> ${category}</p>
-                    <p style="margin: 2px 0;"><strong>Region Pref:</strong> ${region}</p>
-                </div>
-                <div style="text-align: right;">
-                    <h4 style="margin: 0 0 5px; color: #333;">REPORT METADATA</h4>
-                    <p style="margin: 2px 0;"><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
-                    <p style="margin: 2px 0;"><strong>Discipline:</strong> ${course}</p>
-                </div>
-            </div>
+            // Probability Color Logic
+            const probColor = item.probability === 'High' ? [16, 185, 129] : (item.probability === 'Medium' ? [245, 158, 11] : [239, 68, 68]);
+            doc.setTextColor(probColor[0], probColor[1], probColor[2]);
+            doc.setFont('helvetica', 'bold');
+            doc.text(item.probability, 172, y);
+            doc.setFont('helvetica', 'normal');
 
-            <h3 style="background: #f8fafc; padding: 10px; border-left: 5px solid #6366F1; font-size: 16px;">PREDICTED COLLEGE SEQUENCES (Top 20)</h3>
-            
-            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
-                <thead>
-                    <tr style="background: #6366F1; color: white;">
-                        <th style="padding: 10px; text-align: left; border: 1px solid #ddd; font-size: 12px;">College Name</th>
-                        <th style="padding: 10px; text-align: left; border: 1px solid #ddd; font-size: 12px;">Region</th>
-                        <th style="padding: 10px; text-align: left; border: 1px solid #ddd; font-size: 12px;">Cutoff %</th>
-                        <th style="padding: 10px; text-align: left; border: 1px solid #ddd; font-size: 12px;">Probability</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${globalResultsData.slice(0, 20).map(item => `
-                        <tr>
-                            <td style="padding: 8px; border: 1px solid #ddd; font-size: 11px;">${item.college}</td>
-                            <td style="padding: 8px; border: 1px solid #ddd; font-size: 11px;">${item.region}</td>
-                            <td style="padding: 8px; border: 1px solid #ddd; font-size: 11px; font-weight: bold;">${item.cutoff_percentile}%</td>
-                            <td style="padding: 8px; border: 1px solid #ddd; font-size: 11px; color: ${item.probability === 'High' ? '#10B981' : (item.probability === 'Medium' ? '#F59E0B' : '#EF4444')}">${item.probability}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-
-            <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; font-size: 10px; color: #888; text-align: center;">
-                <p><strong>Disclaimer:</strong> This result is generated by an Artificial Intelligence model based on historical data. 
-                Actual seat allotment is subject to the official CAP rounds conducted by the State Common Entrance Test Cell, Maharashtra.</p>
-                <p>© 2026 EduPredict AI - Digital Admission Suite | Generated by DeepMind Agentic Systems</p>
-            </div>
-        `;
-
-        document.body.appendChild(element);
-
-        const opt = {
-            margin:       0.5,
-            filename:     `CollegePredict_Report_${percentile}.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, scrollY: 0, useCORS: true },
-            jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-        };
-
-        html2pdf().set(opt).from(element).save().then(() => {
-            document.body.removeChild(element);
+            y += 12;
         });
+
+        // 5. Footer
+        doc.setTextColor(148, 163, 184);
+        doc.setFontSize(8);
+        const disclaimer = "Disclaimer: This AI-generated report is based on historical data. Official allotments are governed by the State CET Cell, Maharashtra.";
+        doc.text(disclaimer, pageWidth / 2, pageHeight - 15, { align: 'center' });
+        doc.text(`© 2026 EduPredict AI | Page 1`, 20, pageHeight - 15);
+
+        // 6. Save and Trigger Download
+        doc.save(`EduPredict_Report_${percentile}_${new Date().getTime()}.pdf`);
     }
 </script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 {% endblock %}
