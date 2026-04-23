@@ -59,6 +59,22 @@
     #loader { display: none; text-align: center; padding: 10rem 0; }
     .scanner { width: 60px; height: 60px; border: 3px solid rgba(99, 102, 241, 0.1); border-top: 3px solid var(--primary); border-radius: 50%; animation: spin 1s cubic-bezier(0.5, 0.1, 0.5, 0.9) infinite; margin: 0 auto 2.5rem; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    /* Report Download Area */
+    .report-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+    .btn-report { background: var(--accent); color: white; padding: 1rem 2rem; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
+    .btn-report:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(192, 132, 252, 0.3); }
+
+    @media print {
+        header, .btn-submit, .panel-container, .ai-badge, .btn-report { display: none !important; }
+        .predictor-page { padding: 0; margin: 0; }
+        .glass-card { background: white !important; color: black !important; border: 1px solid #ddd !important; box-shadow: none !important; margin: 0 !important; }
+        td, th { color: black !important; border-bottom: 1px solid #eee !important; background: transparent !important; }
+        .tag { border: 1px solid #333 !important; color: black !important; background: transparent !important; }
+        .perc-highlight { color: black !important; font-weight: bold !important; }
+        .dash-card h4 { color: #333 !important; }
+        .dash-card h2 { color: black !important; }
+    }
 </style>
 {% endblock %}
 
@@ -109,6 +125,11 @@
     </div>
 
     <div id="dashboard">
+        <div class="report-actions">
+            <h2 style="font-weight: 800; letter-spacing: -1px;">Prediction Results</h2>
+            <button class="btn-report" onclick="generateReport()"><span style="font-size: 1.2rem;">📥</span> Download Allotment Report</button>
+        </div>
+
         <div class="dash-grid">
             <div class="glass-card dash-card"><h4 class="c-high">HIGH PROBABILITY</h4><h2 id="pH" class="c-high">0</h2></div>
             <div class="glass-card dash-card"><h4 class="c-med">MODERATE</h4><h2 id="pM" class="c-med">0</h2></div>
@@ -116,7 +137,7 @@
         </div>
 
         <div class="glass-card table-wrapper" style="padding: 0;">
-            <table>
+            <table id="resultsTable">
                 <thead>
                     <tr><th style="padding-left: 2rem;">College Designation</th><th>Region</th><th>Cutoff %</th><th>Probabilistic Outcome</th></tr>
                 </thead>
@@ -127,6 +148,8 @@
 </div>
 
 <script>
+    let globalResultsData = [];
+
     document.getElementById('startBtn').onclick = async () => {
         const perc = document.getElementById('percentile').value;
         if(!perc) return alert("Percentile value required");
@@ -150,6 +173,7 @@
             });
 
             const data = await resp.json();
+            globalResultsData = data;
             loader.style.display = 'none';
             dash.style.display = 'block';
             tBody.innerHTML = '';
@@ -183,5 +207,93 @@
             loader.style.display = 'none';
         }
     }
+
+    function generateReport() {
+        if (!globalResultsData || globalResultsData.length === 0) {
+            return alert("No prediction results available to generate a report.");
+        }
+
+        const percentile = document.getElementById('percentile').value;
+        const course = document.getElementById('course').value;
+        const category = document.getElementById('category').value;
+        const region = document.getElementById('region').value;
+
+        // Create a temporary div for the PDF content
+        const element = document.createElement('div');
+        element.style.position = 'absolute';
+        element.style.left = '-9999px';
+        element.style.top = '0';
+        element.style.width = '800px';
+        element.style.padding = '40px';
+        element.style.color = '#000';
+        element.style.background = '#fff';
+        element.style.fontFamily = 'Arial, sans-serif';
+
+        element.innerHTML = `
+            <div style="border-bottom: 3px solid #6366F1; padding-bottom: 20px; margin-bottom: 30px;">
+                <h1 style="color: #6366F1; margin: 0; font-size: 28px;">COLLEGE PREDICT AI</h1>
+                <p style="color: #666; margin: 5px 0 0;">Official Admission Probability Allotment Report</p>
+            </div>
+            
+            <div style="margin-bottom: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <h4 style="margin: 0 0 5px; color: #333;">STUDENT DETAILS</h4>
+                    <p style="margin: 2px 0;"><strong>Percentile:</strong> ${percentile}</p>
+                    <p style="margin: 2px 0;"><strong>Category:</strong> ${category}</p>
+                    <p style="margin: 2px 0;"><strong>Region Pref:</strong> ${region}</p>
+                </div>
+                <div style="text-align: right;">
+                    <h4 style="margin: 0 0 5px; color: #333;">REPORT METADATA</h4>
+                    <p style="margin: 2px 0;"><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+                    <p style="margin: 2px 0;"><strong>Discipline:</strong> ${course}</p>
+                </div>
+            </div>
+
+            <h3 style="background: #f8fafc; padding: 10px; border-left: 5px solid #6366F1; font-size: 16px;">PREDICTED COLLEGE SEQUENCES (Top 20)</h3>
+            
+            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                <thead>
+                    <tr style="background: #6366F1; color: white;">
+                        <th style="padding: 10px; text-align: left; border: 1px solid #ddd; font-size: 12px;">College Name</th>
+                        <th style="padding: 10px; text-align: left; border: 1px solid #ddd; font-size: 12px;">Region</th>
+                        <th style="padding: 10px; text-align: left; border: 1px solid #ddd; font-size: 12px;">Cutoff %</th>
+                        <th style="padding: 10px; text-align: left; border: 1px solid #ddd; font-size: 12px;">Probability</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${globalResultsData.slice(0, 20).map(item => `
+                        <tr>
+                            <td style="padding: 8px; border: 1px solid #ddd; font-size: 11px;">${item.college}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; font-size: 11px;">${item.region}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; font-size: 11px; font-weight: bold;">${item.cutoff_percentile}%</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; font-size: 11px; color: ${item.probability === 'High' ? '#10B981' : (item.probability === 'Medium' ? '#F59E0B' : '#EF4444')}">${item.probability}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+
+            <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; font-size: 10px; color: #888; text-align: center;">
+                <p><strong>Disclaimer:</strong> This result is generated by an Artificial Intelligence model based on historical data. 
+                Actual seat allotment is subject to the official CAP rounds conducted by the State Common Entrance Test Cell, Maharashtra.</p>
+                <p>© 2026 EduPredict AI - Digital Admission Suite | Generated by DeepMind Agentic Systems</p>
+            </div>
+        `;
+
+        document.body.appendChild(element);
+
+        const opt = {
+            margin:       0.5,
+            filename:     `CollegePredict_Report_${percentile}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, scrollY: 0, useCORS: true },
+            jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(element).save().then(() => {
+            document.body.removeChild(element);
+        });
+    }
 </script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 {% endblock %}

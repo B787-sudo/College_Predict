@@ -108,6 +108,14 @@ def logout():
     session.clear()
     return redirect(url_for('home'))
 
+# --- Middleware: Enforce Login ---
+@app.before_request
+def enforce_login():
+    # List of routes that don't require login
+    public_routes = ['login', 'callback', 'static']
+    if request.endpoint not in public_routes and 'user_id' not in session:
+        return redirect(url_for('login'))
+
 # --- Prediction Routes ---
 @app.route('/')
 def home():
