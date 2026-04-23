@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}EduPredict AI | Premium College Analytics{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366F1;
+            --primary-glow: rgba(99, 102, 241, 0.4);
+            --secondary: #A855F7;
+            --bg: #030712;
+            --card-bg: rgba(17, 24, 39, 0.4);
+            --border: rgba(255, 255, 255, 0.08);
+            --text: #F8FAFC;
+            --sub-text: #94A3B8;
+            --accent: #C084FC;
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Outfit',sans-serif; }
+        
+        body { 
+            background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(168, 85, 247, 0.1) 0%, transparent 40%);
+            line-height: 1.6;
+        }
+
+        .mesh-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+            background: linear-gradient(180deg, rgba(3, 7, 18, 0) 0%, #030712 100%);
+        }
+
+        /* Premium Navbar */
+        nav {
+            position: fixed; top: 0; width: 100%; z-index: 1000;
+            background: rgba(3, 7, 18, 0.8); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 1.2rem 8%; display: flex; justify-content: space-between; align-items: center;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .logo { 
+            text-decoration: none; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.6rem; font-weight: 800; 
+            background: linear-gradient(135deg, #818CF8, #C084FC);
+            background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
+            letter-spacing: -1px;
+        }
+
+        .nav-links { display: flex; gap: 2.5rem; list-style: none; align-items: center; }
+        .nav-links a { 
+            color: var(--text); text-decoration: none; font-weight: 500; font-size: 0.95rem; 
+            transition: 0.3s; opacity: 0.7; letter-spacing: 0.2px; position: relative;
+        }
+        .nav-links a:hover { opacity: 1; color: var(--primary); }
+        .nav-links a.active { opacity: 1; color: white; }
+        .nav-links a.active::after {
+            content: ''; position: absolute; bottom: -5px; left: 0; width: 100%; height: 2px;
+            background: var(--primary); border-radius: 2px;
+        }
+
+        .btn-cta { 
+            background: linear-gradient(135deg, var(--primary), var(--secondary)); 
+            color: white !important; padding: 0.8rem 1.8rem; border-radius: 12px; 
+            font-weight: 700; opacity: 1 !important; transition: 0.4s;
+            box-shadow: 0 4px 15px var(--primary-glow);
+            border: 1px solid rgba(255,255,255,0.1);
+            cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+        }
+        .btn-cta:hover { 
+            transform: translateY(-2px); box-shadow: 0 8px 25px var(--primary-glow);
+            filter: brightness(1.1);
+        }
+
+        .btn-large { padding: 1.2rem 3rem; font-size: 1.1rem; border-radius: 16px; }
+
+        /* Glassmorphism Cards Utility */
+        .glass-card {
+            background: var(--card-bg); backdrop-filter: blur(16px);
+            border: 1px solid var(--border); border-radius: 24px;
+            padding: 2rem; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(99, 102, 241, 0.3);
+            transform: translateY(-5px);
+        }
+
+        footer { 
+            padding: 8rem 10% 4rem; background: #010409;
+            border-top: 1px solid var(--border);
+        }
+        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 6rem; margin-bottom: 4rem; }
+        .footer-logo { font-size: 1.8rem; font-weight: 800; margin-bottom: 1.5rem; display: block; }
+        .footer-links h4 { margin-bottom: 1.8rem; color: white; font-weight: 700; font-size: 1.1rem; }
+        .footer-links ul { list-style: none; display: flex; flex-direction: column; gap: 1rem; }
+        .footer-links a { color: var(--sub-text); text-decoration: none; transition: 0.3s; font-size: 0.95rem; }
+        .footer-links a:hover { color: var(--primary); padding-left: 5px; }
+
+        .reveal { opacity: 0; transform: translateY(30px); transition: 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: #1F2937; border-radius: 5px; }
+        ::-webkit-scrollbar-thumb:hover { background: #374151; }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<div class="mesh-bg"></div>
+
+<nav id="main-nav">
+    <a href="/" class="logo">EduPredict AI</a>
+    <ul class="nav-links">
+        <li><a href="/" id="home-link">Home</a></li>
+        <li><a href="/predictor">Predictor</a></li>
+        <li><a href="/community">Community</a></li>
+        <li><a href="/chat">Live Chat</a></li>
+        {% if session.get('user_id') %}
+            <li style="display: flex; align-items: center; gap: 15px; margin-left: 10px;">
+                <div style="position: relative;">
+                    <img src="{{ session['user_pic'] }}" style="width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--primary); padding: 2px;">
+                    <span style="position: absolute; bottom: 0; right: 0; width: 10px; height: 10px; background: #10B981; border-radius: 50%; border: 2px solid var(--bg);"></span>
+                </div>
+                <a href="/logout" style="opacity: 1; font-weight: 600;">Logout</a>
+            </li>
+        {% else %}
+            <li><a href="/login" class="btn-cta">Sign In</a></li>
+        {% endif %}
+    </ul>
+</nav>
+
+<div style="padding-top: 90px; min-height: calc(100vh - 400px);">
+    {% block content %}{% endblock %}
+</div>
+
+<footer>
+    <div class="footer-grid">
+        <div>
+            <span class="logo footer-logo">EduPredict AI</span>
+            <p style="color: var(--sub-text); max-width: 450px; line-height: 1.8; font-size: 1.05rem;">
+                State-of-the-art college admission intelligence. Empowering students with data-driven results based on official MHT-CET historical records.
+            </p>
+        </div>
+        <div class="footer-links">
+            <h4>Intelligence</h4>
+            <ul>
+                <li><a href="/predictor">RF Analysis Suite</a></li>
+                <li><a href="/api/posts">Data API</a></li>
+                <li><a href="#">Accuracy Report</a></li>
+            </ul>
+        </div>
+        <div class="footer-links">
+            <h4>Support</h4>
+            <ul>
+                <li><a href="/community">Community Hub</a></li>
+                <li><a href="/chat">Live Support</a></li>
+                <li><a href="#">Documentation</a></li>
+            </ul>
+        </div>
+    </div>
+    <div style="border-top: 1px solid var(--border); padding-top: 2.5rem; text-align: center; color: var(--sub-text); font-size: 0.9rem;">
+        &copy; 2026 EduPredict AI. All rights reserved. Built with DeepMind Technology.
+    </div>
+</footer>
+
+<script>
+    function reveal() {
+        var reveals = document.querySelectorAll(".reveal");
+        for (var i = 0; i < reveals.length; i++) {
+            var windowHeight = window.innerHeight;
+            var elementTop = reveals[i].getBoundingClientRect().top;
+            var elementVisible = 100;
+            if (elementTop < windowHeight - elementVisible) {
+                reveals[i].classList.add("active");
+            }
+        }
+    }
+    window.addEventListener("scroll", reveal);
+    window.addEventListener("scroll", () => {
+        const nav = document.getElementById('main-nav');
+        if (window.scrollY > 50) {
+            nav.style.padding = "0.8rem 8%";
+            nav.style.background = "rgba(3, 7, 18, 0.9)";
+        } else {
+            nav.style.padding = "1.2rem 8%";
+            nav.style.background = "rgba(3, 7, 18, 0.8)";
+        }
+    });
+
+    // Active Link Highlighting
+    const currentPath = window.location.pathname;
+    document.querySelectorAll('.nav-links a').forEach(link => {
+        if (link.getAttribute('href') === currentPath) {
+            link.classList.add('active');
+        }
+    });
+    
+    reveal();
+</script>
+
+</body>
+</html>

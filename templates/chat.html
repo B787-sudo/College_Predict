@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Live Chat | EduPredict AI{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+<style>
+    .chat-wrapper { max-width: 1000px; margin: 2rem auto; height: 75vh; position: relative; }
+    
+    .chat-panel {
+        display: flex; flex-direction: column; height: 100%; border-radius: 30px; overflow: hidden;
+    }
+
+    .chat-header {
+        padding: 1.5rem 2.5rem; background: rgba(255,255,255,0.03);
+        border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between;
+    }
+
+    #messages {
+        flex: 1; padding: 2.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem;
+        background: radial-gradient(circle at center, rgba(99, 102, 241, 0.03) 0%, transparent 70%);
+    }
+
+    .msg-group { display: flex; flex-direction: column; max-width: 70%; }
+    .msg-user { font-size: 0.75rem; font-weight: 700; color: var(--sub-text); margin-bottom: 4px; padding: 0 10px; }
+    
+    .msg-bubble { 
+        padding: 1rem 1.4rem; border-radius: 20px; font-size: 0.95rem; line-height: 1.5;
+        position: relative; animation: popIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    }
+    @keyframes popIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+    .msg-received { align-self: flex-start; }
+    .msg-received .msg-bubble { background: rgba(255,255,255,0.06); border: 1px solid var(--border); color: white; border-bottom-left-radius: 4px; }
+    
+    .msg-sent { align-self: flex-end; }
+    .msg-sent .msg-bubble { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border-bottom-right-radius: 4px; font-weight: 500; }
+
+    .chat-input-area {
+        padding: 1.5rem 2.5rem; background: rgba(3, 7, 18, 0.5); border-top: 1px solid var(--border);
+        display: flex; gap: 15px; align-items: center;
+    }
+
+    .chat-input {
+        flex: 1; background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+        padding: 1.2rem 1.5rem; border-radius: 16px; color: white; outline: none; transition: 0.3s;
+    }
+    .chat-input:focus { border-color: var(--primary); background: rgba(255,255,255,0.08); }
+
+    .live-badge { display: flex; align-items: center; gap: 8px; background: rgba(16, 185, 129, 0.1); color: #10B981; padding: 6px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 800; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chat-wrapper reveal">
+    <div class="glass-card chat-panel">
+        <div class="chat-header">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div style="font-size: 1.5rem;">💬</div>
+                <div>
+                    <h3 style="font-size: 1.1rem; font-weight: 700;">Global Admission Support</h3>
+                    <p style="font-size: 0.8rem; color: var(--sub-text);">End-to-end encrypted chat layer activated</p>
+                </div>
+            </div>
+            <div class="live-badge"><span class="live-dot" style="margin: 0;"></span> LIVE</div>
+        </div>
+
+        <div id="messages">
+            <div style="text-align: center; color: var(--sub-text); font-size: 0.8rem; margin: 1rem 0;">System: Connection established with Socket.IO relay</div>
+        </div>
+
+        <div class="chat-input-area">
+            <input type="text" id="myMessage" class="chat-input" placeholder="Securely transmit your message...">
+            <button id="sendBtn" class="btn-cta" style="padding: 1.2rem 2.5rem; border-radius: 16px;">Send Message</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const socket = io();
+    const messages = document.getElementById('messages');
+    const input = document.getElementById('myMessage');
+    const btn = document.getElementById('sendBtn');
+
+    socket.on('message', function(data) {
+        addMessage(data.user, data.msg, 'received');
+    });
+
+    function addMessage(user, msg, type) {
+        const div = document.createElement('div');
+        div.className = `msg-group msg-${type}`;
+        div.innerHTML = `
+            <span class="msg-user">${type === 'sent' ? 'You' : user}</span>
+            <div class="msg-bubble">${msg}</div>
+        `;
+        messages.appendChild(div);
+        messages.scrollTop = messages.scrollHeight;
+    }
+
+    btn.onclick = () => {
+        if(input.value.trim()) {
+            const val = input.value;
+            socket.emit('message', { msg: val, user: "{{ session.get('user_name', 'Student') }}" });
+            addMessage(null, val, 'sent');
+            input.value = '';
+        }
+    };
+
+    input.onkeypress = e => { if(e.key === 'Enter') btn.click(); };
+</script>
+{% endblock %}

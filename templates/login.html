@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Sign In | EduPredict AI{% endblock %}
+
+{% block extra_css %}
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+    .login-wrapper { 
+        display: flex; justify-content: center; align-items: center; 
+        min-height: calc(100vh - 200px); padding: 2rem;
+    }
+    
+    .login-portal {
+        max-width: 450px; width: 100%; padding: 4rem 3rem; text-align: center;
+        border-radius: 40px; position: relative; overflow: hidden;
+    }
+
+    .login-portal::before {
+        content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+        background: radial-gradient(circle at center, rgba(99, 102, 241, 0.1) 0%, transparent 50%);
+        z-index: -1; animation: rotate 20s linear infinite;
+    }
+    @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    .portal-icon { 
+        font-size: 3rem; margin-bottom: 2rem; display: inline-block;
+        background: rgba(255,255,255,0.05); padding: 20px; border-radius: 20px;
+    }
+
+    .portal-title { font-size: 2.2rem; font-weight: 900; margin-bottom: 1rem; letter-spacing: -1px; }
+    .portal-subtitle { color: var(--sub-text); margin-bottom: 3rem; line-height: 1.6; }
+
+    .oauth-container { display: flex; flex-direction: column; gap: 15px; align-items: center; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-wrapper">
+    <div class="glass-card login-portal reveal">
+        <div class="portal-icon">🛡️</div>
+        <h1 class="portal-title">Secure Portal</h1>
+        <p class="portal-subtitle">Access your personalized admission intelligence dashboard and community privileges.</p>
+        
+        <div class="oauth-container">
+            <div id="g_id_onload"
+                 data-client_id="{{ google_client_id }}"
+                 data-callback="handleCredentialResponse"
+                 data-auto_prompt="false">
+            </div>
+            <div class="g_id_signin" 
+                 data-type="standard" 
+                 data-shape="pill" 
+                 data-theme="filled_blue" 
+                 data-text="signin_with" 
+                 data-size="large" 
+                 data-logo_alignment="left">
+            </div>
+        </div>
+
+        <p style="margin-top: 3rem; font-size: 0.85rem; color: var(--sub-text);">
+            By signing in, you agree to our <a href="#" style="color: var(--primary); text-decoration: none;">Terms of Service</a>
+        </p>
+    </div>
+</div>
+
+<script>
+    function handleCredentialResponse(response) {
+        const formData = new FormData();
+        formData.append('idtoken', response.credential);
+
+        fetch('/callback', {
+            method: 'POST',
+            body: formData
+        }).then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                window.location.href = '/';
+            } else {
+                alert("Authentication failed. Please try again.");
+            }
+        });
+    }
+</script>
+{% endblock %}

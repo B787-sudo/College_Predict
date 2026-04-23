@@ -1,0 +1,12 @@
+pandas
+numpy
+scikit-learn
+joblib
+flask
+flask-socketio
+google-auth
+google-auth-oauthlib
+pymongo
+python-dotenv
+requests
+google-genai

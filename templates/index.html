@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+{% block title %}Experience EduPredict AI | Admission Intelligence{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Hero */
+    .hero {
+        position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center;
+        text-align: center; height: 90vh; width: 100%; margin: auto; padding: 0 10%; z-index: 2;
+    }
+
+    .hero h1 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 5.5rem; margin-bottom: 2rem; letter-spacing: -2px; line-height: 1; }
+    .hero p { font-size: 1.4rem; color: #94A3B8; max-width: 700px; line-height: 1.6; margin: 0 auto 3.5rem auto; }
+
+    .glow-dot { position: absolute; width: 400px; height: 400px; border-radius: 50%; opacity: 0.3; filter: blur(100px); z-index: -1; pointer-events: none; }
+    #glow-1 { top: 10%; left: -10%; background: var(--primary); animation: drift 10s infinite; }
+    @keyframes drift { to { transform: translate(50px, 50px); } }
+
+    /* Features */
+    .features-section { padding: 8rem 10%; border-top: 1px solid rgba(255,255,255,0.03); }
+    .features-section h2 { font-size:3.5rem; font-weight:800; margin-bottom:5rem; text-align:center; letter-spacing: -1px; }
+    .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.5rem; }
+    .feature-card { 
+        background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px); padding: 3.5rem 2.5rem; 
+        border: 1px solid rgba(255,255,255,0.05); border-radius: 2.5rem; 
+        transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .feature-card:hover { transform: translateY(-10px) scale(1.02); background: rgba(255, 255, 255, 0.05); border-color: rgba(99, 102, 241, 0.4); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+    .icon { font-size: 2.5rem; margin-bottom: 2rem; color: var(--primary); font-weight: 800; }
+    .feature-card h3 { font-size: 1.6rem; margin-bottom: 1.2rem; }
+    .feature-card p { color: var(--sub-text); line-height: 1.7; font-size: 1rem; }
+
+    /* Interactive Stats Bar */
+    .stats-bar { 
+        display: flex; justify-content: space-around; max-width: 1100px; margin: 4rem auto; padding: 4rem 2rem; 
+        background: rgba(255,255,255,0.02); border-radius: 3rem; border: 1px solid rgba(255,255,255,0.04); 
+        backdrop-filter: blur(10px);
+    }
+    .stat-box { text-align: center; }
+    .stat-box h2 { font-size: 3.2rem; margin-bottom: 0.5rem; color: white; font-weight: 800; letter-spacing: -2px; }
+    .stat-box p { color: var(--sub-text); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 2px; }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-20px); }
+    }
+    .floating { animation: float 6s ease-in-out infinite; }
+
+    /* FAQ */
+    .faq-section { padding: 8rem 10%; max-width: 1400px; margin: auto; }
+    .faq-section h2 { text-align: center; margin-bottom: 5rem; font-size: 3rem; }
+    .faq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; }
+    .faq-item { padding: 2.5rem; background: rgba(255,255,255,0.02); border-radius: 2rem; border: 1px solid rgba(255,255,255,0.03); }
+    .faq-item h4 { font-size: 1.25rem; margin-bottom: 1rem; color: white; }
+    .faq-item p { color: var(--sub-text); line-height: 1.7; }
+
+    .btn-large { padding: 1.2rem 3.5rem; font-size: 1.4rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="glow-1" class="glow-dot"></div>
+
+{% if not session.get('user_id') %}
+<section class="hero reveal active">
+    <h1>Smart Decisions.<br><span style="color: var(--primary);">Proven AI.</span></h1>
+    <p>EduPredict AI utilizes state-of-the-art Random Forest classifiers to analyze thousands of data points from 330+ Engineering Colleges across Maharashtra.</p>
+    <div style="display: flex; gap: 20px;">
+        <a href="/login" class="btn-cta btn-large">Launch Analysis Suite</a>
+        <a href="#architecture" class="btn-cta btn-large" style="background: transparent; border: 1px solid var(--border);">Technical Specs</a>
+    </div>
+</section>
+{% else %}
+<section class="hero reveal active" style="height: auto; padding-top: 100px; padding-bottom: 60px;">
+    <h1 style="font-size: 4rem; margin-bottom: 1.5rem;">Welcome, <span style="background: linear-gradient(135deg, #818CF8, #C084FC); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">{{ session['user_name'].split()[0] }}</span></h1>
+    <p style="font-size: 1.25rem;">Your customized admission intelligence suite is ready.</p>
+</section>
+
+<section class="features-section reveal" style="padding-top: 0;">
+    <div class="feature-grid">
+        <!-- Predictor Card -->
+        <div class="glass-card feature-card">
+            <div class="icon">🔍</div>
+            <h3>College Predictor</h3>
+            <p>Our RF engine analyzes multi-year percentile variations to calculate your "Margin of Safety".</p>
+            <a href="/predictor" class="btn-cta" style="margin-top: 2rem;">Analyze Now</a>
+        </div>
+
+        <!-- Community Card -->
+        <div class="glass-card feature-card">
+            <div class="icon">🤝</div>
+            <h3>Community Hub</h3>
+            <p>Join 5,000+ students in live discussions. Real-time updates on CAP round allotments.</p>
+            <div id="latest-post-snippet" style="margin-top: 1rem; padding: 0.8rem; background: rgba(255,255,255,0.03); border-radius: 12px; font-size: 0.8rem; border-left: 3px solid var(--primary); display: none;">
+                <span style="color: var(--sub-text);">Latest: </span><span id="post-text" style="color: white; font-style: italic;"></span>
+            </div>
+            <a href="/community" class="btn-cta" style="margin-top: 2rem;">Join Feed</a>
+        </div>
+
+        <!-- AI Support Card -->
+        <div class="glass-card feature-card" style="border-color: rgba(168, 85, 247, 0.3); background: rgba(168, 85, 247, 0.05);">
+            <div class="icon">✨</div>
+            <h3>AI Support</h3>
+            <div id="ai-chat-box" style="height: 160px; overflow-y: auto; background: rgba(0,0,0,0.3); border-radius: 16px; padding: 1.2rem; margin: 1.5rem 0; font-size: 0.95rem; display: flex; flex-direction: column; gap: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                <div style="color: var(--sub-text); line-height: 1.5;">Ask Gemini about Maharashtra CAP rounds, cutoffs, or college rankings...</div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="ai-query" placeholder="Ask AI Expert..." style="flex: 1; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 0.8rem 1rem; color: white; outline: none; transition: 0.3s;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
+                <button onclick="askAI()" class="btn-cta" style="padding: 0 1.2rem; border-radius: 12px;"><img src="https://www.svgrepo.com/show/339678/send.svg" style="width: 20px; filter: invert(1);"></button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    async function askAI() {
+        const queryInput = document.getElementById('ai-query');
+        const chatBox = document.getElementById('ai-chat-box');
+        const query = queryInput.value;
+        if (!query) return;
+
+        const userMsg = document.createElement('div');
+        userMsg.style.cssText = 'align-self: flex-end; background: var(--primary); padding: 8px 14px; border-radius: 14px 14px 0 14px; font-weight: 500; font-size: 0.9rem;';
+        userMsg.innerText = query;
+        chatBox.appendChild(userMsg);
+        queryInput.value = '';
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        try {
+            const resp = await fetch('/api/ai_support', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query })
+            });
+            const data = await resp.json();
+            
+            const aiMsg = document.createElement('div');
+            aiMsg.style.cssText = 'align-self: flex-start; background: rgba(255,255,255,0.1); padding: 10px 14px; border-radius: 14px 14px 14px 0; border: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; line-height: 1.6;';
+            aiMsg.innerText = data.response || data.error;
+            chatBox.appendChild(aiMsg);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        } catch (e) { console.error(e); }
+    }
+    async function updateDashboardFeed() {
+        try {
+            const resp = await fetch('/api/posts');
+            const posts = await resp.json();
+            if (posts && posts.length > 0) {
+                const snippet = document.getElementById('latest-post-snippet');
+                const postText = document.getElementById('post-text');
+                snippet.style.display = 'block';
+                postText.innerText = `"${posts[0].query.substring(0, 40)}${posts[0].query.length > 40 ? '...' : ''}"`;
+            }
+        } catch (e) {}
+    }
+    updateDashboardFeed();
+    document.getElementById('ai-query').addEventListener('keypress', (e) => { if(e.key === 'Enter') askAI(); });
+</script>
+{% endif %}
+
+<section id="architecture" class="features-section reveal" style="background: rgba(168, 85, 247, 0.015); border-radius: 60px; margin: 0 5%; padding: 6rem 8%;">
+    <h2 style="font-size: 2.5rem; margin-bottom: 4rem;">System Architecture</h2>
+    <div class="feature-grid" style="grid-template-columns: repeat(2, 1fr);">
+        <div class="glass-card" style="display: flex; gap: 20px; align-items: start;">
+            <div style="font-size: 2rem; background: rgba(99, 102, 241, 0.1); padding: 15px; border-radius: 15px;">💾</div>
+            <div>
+                <h3>Distributed Storage</h3>
+                <p>Powered by <strong>MongoDB Atlas</strong>. High-availability document store for real-time user state and community interactions.</p>
+            </div>
+        </div>
+        <div class="glass-card" style="display: flex; gap: 20px; align-items: start;">
+            <div style="font-size: 2rem; background: rgba(168, 85, 247, 0.1); padding: 15px; border-radius: 15px;">🧠</div>
+            <div>
+                <h3>Inference Engine</h3>
+                <p>Scikit-learn <strong>Random Forest</strong> classifiers optimized for ultra-low latency MHT-CET probability scoring.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="stats-bar reveal" style="margin-top: 4rem; border-radius: 30px;">
+    <div class="stat-box"><h2>Active</h2><p>Server Status</p></div>
+    <div class="stat-box"><h2>0.2s</h2><p>Predict Latency</p></div>
+    <div class="stat-box"><h2>Secure</h2><p>OAuth 2.0</p></div>
+    <div class="stat-box"><h2>v2.4.0</h2><p>Model Version</p></div>
+</div>
+
+<section class="features-section reveal">
+    <h2>Advanced Analytics</h2>
+    <div class="feature-grid">
+        <div class="feature-card">
+            <div class="icon">/ RF</div>
+            <h3>Historical Logic</h3>
+            <p>Our model doesn't just look at ranking. It analyzes multi-year percentile variations to calculate the "Margin of Safety" for your admission.</p>
+        </div>
+        <div class="feature-card">
+            <div class="icon">/ R1</div>
+            <h3>Region Awareness</h3>
+            <p>Integrated data from 30+ districts including Mumbai, Pune, Nagpur, and Amravati. Perfect for local and state-level candidates.</p>
+        </div>
+        <div class="feature-card">
+            <div class="icon">/ QC</div>
+            <h3>Categorical Intelligence</h3>
+            <p>Specialized logic for DEFOPENS, TFWS, SC, ST, and 12+ other admission classes. No manual lookup needed.</p>
+        </div>
+    </div>
+</section>
+
+<section class="faq-section reveal">
+    <h2>Understanding the Intelligence</h2>
+    <div class="faq-grid">
+        <div class="faq-item">
+            <h4>How accurate are the predictions?</h4>
+            <p>Our Random Forest model is trained on 36,000+ data points from the official 2023-24 admission cycles. While year-on-year competition changes, our probability scoring provides an industry-leading approximation of your chances.</p>
+        </div>
+        <div class="faq-item">
+            <h4>Why is Percentile more important than Rank?</h4>
+            <p>Ranks fluctuate wildly based on the number of applicants. Percentile represents your standing relative to other test-takers, which remains the single most important factor for admission logic.</p>
+        </div>
+        <div class="faq-item">
+            <h4>Can I see All-Maharashtra results?</h4>
+            <p>Yes. By selecting "All Regions" in our Search Suite, you can see every college across the state that matches your percentile and category profile.</p>
+        </div>
+        <div class="faq-item">
+            <h4>Is my data private?</h4>
+            <p>Absolutely. EduPredict AI processes your percentile locally on our analysis engine and does not store your identifying information on its public servers.</p>
+        </div>
+    </div>
+</section>
+
+<section class="features-section reveal" style="background: rgba(168, 85, 247, 0.02);">
+    <h2>System Architecture</h2>
+    <div class="feature-grid">
+        <div class="feature-card">
+            <div class="icon">/ DB</div>
+            <h3>Storage Layer</h3>
+            <p>Powered by <strong>MongoDB Atlas</strong> for highly available, schema-less data orchestration of user profiles and community queries.</p>
+        </div>
+        <div class="feature-card">
+            <div class="icon">/ WS</div>
+            <h3>Real-time Layer</h3>
+            <p>Utilizing <strong>WebSockets (Socket.IO)</strong> for sub-100ms latency in community chats and live updates.</p>
+        </div>
+        <div class="feature-card">
+            <div class="icon">/ AI</div>
+            <h3>Analysis Engine</h3>
+            <p>Flask-based REST API serving asynchronous <strong>Scikit-learn</strong> Random Forest models for high-concurrency predictions.</p>
+        </div>
+    </div>
+</section>
+
+<div class="stats-bar reveal" style="margin-top: 0;">
+    <div class="stat-box"><h2>Active</h2><p>Server Status</p></div>
+    <div class="stat-box"><h2>0.2s</h2><p>Predict Latency</p></div>
+    <div class="stat-box"><h2>Secure</h2><p>OAuth 2.0</p></div>
+    <div class="stat-box"><h2>v2.4.0</h2><p>Model Version</p></div>
+</div>
+
+<div style="text-align: center; padding: 4rem 0 8rem;" class="reveal">
+    <h2 style="font-size: 3rem; margin-bottom: 1.5rem;">Ready to find your future?</h2>
+    <a href="/predictor" class="btn-cta btn-large">Try the Predictor</a>
+</div>
+
+<script>
+    document.getElementById('home-link').classList.add('active');
+</script>
+{% endblock %}

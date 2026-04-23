@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+{% block title %}Launch Suite | Digital Admission Prediction{% endblock %}
+
+{% block extra_css %}
+<style>
+    .predictor-page { padding: 4rem 10% 10rem; position: relative; }
+    
+    .panel-container { 
+        display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; margin-bottom: 5rem;
+    }
+
+    .form-box { display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 1.5rem; }
+    .form-box label { font-size: 0.85rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 1.5px; }
+    
+    .form-box select, .form-box input {
+        background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border); padding: 1.2rem;
+        border-radius: 16px; color: white; font-size: 1.05rem; transition: 0.4s;
+        cursor: pointer; outline: none;
+    }
+    .form-box select:focus, .form-box input:focus { border-color: var(--primary); background: rgba(15, 23, 42, 0.6); }
+
+    .ai-badge { 
+        display: inline-flex; align-items: center; gap: 10px; font-size: 0.8rem; font-weight: 800; 
+        color: var(--accent); margin-bottom: 2.5rem; background: rgba(192, 132, 252, 0.1); 
+        padding: 0.6rem 1.4rem; border-radius: 50px; border: 1px solid rgba(192, 132, 252, 0.2); 
+    }
+
+    .btn-submit {
+        width: 100%; margin-top: 1rem;
+        padding: 1.4rem; font-size: 1.2rem;
+    }
+
+    /* Stats Dashboard */
+    #dashboard { display: none; margin-top: 2rem; animation: revealUp 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+    @keyframes revealUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+
+    .dash-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 3.5rem; }
+    .dash-card { text-align: center; border-radius: 24px; }
+    .dash-card h4 { font-size: 0.85rem; color: var(--sub-text); margin-bottom: 0.8rem; letter-spacing: 1px; font-weight: 700; }
+    .dash-card h2 { font-size: 3.5rem; font-weight: 900; line-height: 1; }
+    .c-high { color: #10B981; } .c-med { color: #F59E0B; } .c-low { color: #EF4444; }
+
+    /* Results Table */
+    .table-wrapper { overflow: hidden; }
+    table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+    th { text-align: left; padding: 1.5rem 2rem; font-size: 0.8rem; font-weight: 800; color: var(--sub-text); text-transform: uppercase; letter-spacing: 1px; background: rgba(255,255,255,0.02); }
+    td { padding: 1.8rem 2rem; background: rgba(255,255,255,0.02); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); transition: 0.3s; }
+    tr:hover td { background: rgba(255,255,255,0.04); }
+    td:first-child { border-left: 1px solid var(--border); border-radius: 16px 0 0 16px; font-weight: 600; font-size: 1.05rem; }
+    td:last-child { border-right: 1px solid var(--border); border-radius: 0 16px 16px 0; }
+
+    .tag { display: inline-flex; align-items: center; gap: 6px; padding: 0.5rem 1.2rem; border-radius: 10px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+    .tag-high { background: rgba(16, 185, 129, 0.12); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.2); }
+    .tag-med { background: rgba(245, 158, 11, 0.12); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.2); }
+    .tag-low { background: rgba(239, 68, 68, 0.12); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.2); }
+
+    .perc-highlight { color: var(--accent); font-weight: 800; font-size: 1.1rem; }
+
+    #loader { display: none; text-align: center; padding: 10rem 0; }
+    .scanner { width: 60px; height: 60px; border: 3px solid rgba(99, 102, 241, 0.1); border-top: 3px solid var(--primary); border-radius: 50%; animation: spin 1s cubic-bezier(0.5, 0.1, 0.5, 0.9) infinite; margin: 0 auto 2.5rem; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="predictor-page">
+    <div style="text-align: center; margin-bottom: 5rem;">
+        <div class="ai-badge reveal"><span>✨</span> RF Inference Engine v2.4</div>
+        <h1 class="reveal" style="font-size: 4.5rem; margin-bottom: 1.5rem; font-weight: 900; letter-spacing: -2px;">Prediction Suite</h1>
+        <p class="reveal" style="color: var(--sub-text); font-size: 1.3rem; max-width: 600px; margin: 0 auto;">Configure your academic parameters to execute real-time admission probability analysis.</p>
+    </div>
+
+    <div class="glass-card reveal" style="padding: 4rem; margin-bottom: 6rem;">
+        <div class="panel-container">
+            <div>
+                <div class="form-box">
+                    <label>Engineering Discipline</label>
+                    <select id="course">
+                        {% for course in courses %}<option value="{{ course }}">{{ course }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="form-box">
+                    <label>Quota Category</label>
+                    <select id="category">
+                        {% for cat in categories %}<option value="{{ cat }}">{{ cat }}</option>{% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div>
+                <div class="form-box">
+                    <label>Geographic Region</label>
+                    <select id="region">
+                        {% for r in regions %}<option value="{{ r }}" {% if r == 'All Regions' %}selected{% endif %}>{{ r }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="form-box">
+                    <label>MHT-CET Percentile</label>
+                    <input type="number" step="0.01" id="percentile" placeholder="e.g. 98.45" required>
+                </div>
+            </div>
+        </div>
+        <button type="submit" id="startBtn" class="btn-cta btn-submit">Execute AI Logic & Search Repository</button>
+    </div>
+
+    <div id="loader">
+        <div class="scanner"></div>
+        <h3 style="color: var(--primary); letter-spacing: 4px; font-weight: 800; font-size: 0.9rem; text-transform: uppercase;">Synchronizing Repositories</h3>
+        <p style="color: var(--sub-text); margin-top: 1.2rem; font-size: 1.1rem;">Cross-referencing Academic Year 2023-24 Admission Cycles...</p>
+    </div>
+
+    <div id="dashboard">
+        <div class="dash-grid">
+            <div class="glass-card dash-card"><h4 class="c-high">HIGH PROBABILITY</h4><h2 id="pH" class="c-high">0</h2></div>
+            <div class="glass-card dash-card"><h4 class="c-med">MODERATE</h4><h2 id="pM" class="c-med">0</h2></div>
+            <div class="glass-card dash-card"><h4 class="c-low">RISKY MATCH</h4><h2 id="pL" class="c-low">0</h2></div>
+        </div>
+
+        <div class="glass-card table-wrapper" style="padding: 0;">
+            <table>
+                <thead>
+                    <tr><th style="padding-left: 2rem;">College Designation</th><th>Region</th><th>Cutoff %</th><th>Probabilistic Outcome</th></tr>
+                </thead>
+                <tbody id="pTable"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('startBtn').onclick = async () => {
+        const perc = document.getElementById('percentile').value;
+        if(!perc) return alert("Percentile value required");
+
+        const loader = document.getElementById('loader'), dash = document.getElementById('dashboard'), tBody = document.getElementById('pTable');
+        
+        loader.style.display = 'block'; 
+        dash.style.display = 'none';
+        window.scrollTo({ top: loader.offsetTop - 150, behavior: 'smooth' });
+
+        try {
+            const resp = await fetch('/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    percentile: perc,
+                    course: document.getElementById('course').value,
+                    category: document.getElementById('category').value,
+                    region: document.getElementById('region').value
+                })
+            });
+
+            const data = await resp.json();
+            loader.style.display = 'none';
+            dash.style.display = 'block';
+            tBody.innerHTML = '';
+
+            let c = { High: 0, Medium: 0, Low: 0 };
+            data.forEach((item, idx) => {
+                const tr = document.createElement('tr');
+                tr.style.animation = `revealUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards ${idx * 0.05}s`;
+                tr.style.opacity = '0';
+                const tCls = `tag-${item.probability.toLowerCase()}`;
+                const icon = item.probability === 'High' ? '●' : (item.probability === 'Medium' ? '○' : '▲');
+                c[item.probability]++;
+                tr.innerHTML = `
+                    <td>${item.college}</td>
+                    <td style="color: var(--sub-text); font-weight: 500;">${item.region}</td>
+                    <td class="perc-highlight">${item.cutoff_percentile}%</td>
+                    <td><span class="tag ${tCls}">${icon} ${item.probability}</span></td>
+                `;
+                tBody.appendChild(tr);
+            });
+
+            document.getElementById('pH').innerText = c.High;
+            document.getElementById('pM').innerText = c.Medium;
+            document.getElementById('pL').innerText = c.Low;
+            
+            setTimeout(() => {
+                window.scrollTo({ top: dash.offsetTop - 120, behavior: 'smooth' });
+            }, 100);
+        } catch (e) {
+            alert("Analysis pipeline error. Check system logs.");
+            loader.style.display = 'none';
+        }
+    }
+</script>
+{% endblock %}
